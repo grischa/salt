@@ -717,6 +717,14 @@ def create(vm_):
                 if private_ip not in data.private_ips and not ignore_ip:
                     result.append(private_ip)
 
+        # populate return data with public_ips
+        # when ssh_interface is set to private_ips and only public_ips exist
+        if not private and ssh_interface(vm_) == 'private_ips':
+            for public_ip in public:
+                ignore_ip = ignore_cidr(vm_, public_ip)
+                if public_ip not in data.private_ips and not ignore_ip:
+                    result.append(public_ip)
+
         if result:
             log.debug('result = {0}'.format(result))
             data.private_ips = result
