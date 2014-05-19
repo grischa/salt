@@ -382,6 +382,12 @@ def create(vm_):
         )
         return False
 
+    avz = config.get_cloud_config_value(
+        'availability_zone', vm_, __opts__, default=None, search_global=False
+    )
+    if avz is not None:
+        kwargs['ex_availability_zone'] = avz
+
     kwargs['ex_keyname'] = config.get_cloud_config_value(
         'ssh_key_name', vm_, __opts__, search_global=False
     )
@@ -588,6 +594,14 @@ def create(vm_):
                 ignore_ip = ignore_cidr(vm_, private_ip)
                 if private_ip not in data.private_ips and not ignore_ip:
                     result.append(private_ip)
+
+        # populate return data with public_ips
+        # when ssh_interface is set to private_ips and only public_ips exist
+        if not private and ssh_interface(vm_) == 'private_ips':
+            for public_ip in public:
+                ignore_ip = ignore_cidr(vm_, public_ip)
+                if public_ip not in data.private_ips and not ignore_ip:
+                    result.append(public_ip)
 
         if result:
             log.debug('result = {0}'.format(result))
